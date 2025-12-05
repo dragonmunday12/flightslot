@@ -1,0 +1,107 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Instructor account (only one)
+model Instructor {
+  id        String   @id @default(cuid())
+  pin       String   // Hashed PIN
+  email     String?  // Configurable email for notifications
+  phone     String?  // Configurable phone for SMS notifications
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Students who can view their schedules
+model Student {
+  id        String      @id @default(cuid())
+  name      String
+  pin       String      // Hashed PIN
+  phone     String?     // For SMS notifications
+  email     String?     // For email notifications
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  // Relations
+  schedules Schedule[]
+  requests  Request[]
+}
+
+// Time blocks (Morning, Early Afternoon, Late Afternoon, Evening)
+model TimeBlock {
+  id        String   @id @default(cuid())
+  name      String   // e.g., "Morning", "Early Afternoon"
+  startTime String   // e.g., "08:00"
+  endTime   String   // e.g., "12:00"
+  order     Int      // Display order (1, 2, 3, 4)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  schedules Schedule[]
+  requests  Request[]
+
+  @@unique([name])
+}
+
+// Schedule assignments (which student is assigned to which time block on which day)
+model Schedule {
+  id          String    @id @default(cuid())
+  date        DateTime  // The specific date
+  studentId   String
+  timeBlockId String
+  isRecurring Boolean   @default(false) // Whether this is part of a recurring schedule
+  recurringId String?   // Groups recurring schedules together
+  notes       String?   // Optional notes
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  student   Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  timeBlock TimeBlock @relation(fields: [timeBlockId], references: [id], onDelete: Cascade)
+
+  // Ensure only one student per time block per day
+  @@unique([date, timeBlockId])
+  @@index([studentId])
+  @@index([date])
+  @@index([recurringId])
+}
+
+// Student requests for time slots
+model Request {
+  id          String   @id @default(cuid())
+  date        DateTime // The requested date
+  studentId   String
+  timeBlockId String
+  status      String   @default("pending") // "pending", "approved", "denied"
+  message     String?  // Optional message from student
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  student   Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  timeBlock TimeBlock @relation(fields: [timeBlockId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([status])
+  @@index([date])
+}
+
+// Blocked days (when instructor is not available)
+model BlockedDay {
+  id        String   @id @default(cuid())
+  date      DateTime @unique // The blocked date
+  reason    String?  // Optional reason
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([date])
+}
