@@ -13,6 +13,8 @@ type InputProps = {
   maxLength?: number
   className?: string
   error?: string
+  min?: string
+  max?: string
 }
 
 export function Input({
@@ -26,6 +28,8 @@ export function Input({
   maxLength,
   className = '',
   error,
+  min,
+  max,
 }: InputProps) {
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
@@ -43,6 +47,8 @@ export function Input({
         disabled={disabled}
         required={required}
         maxLength={maxLength}
+        min={min}
+        max={max}
         style={{
           padding: '0.5rem 1rem',
           border: error ? '1px solid #f87171' : '1px solid #4b5563',
