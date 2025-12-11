@@ -30,8 +30,9 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
   }
 
   try {
+    const fromEmail = process.env.FROM_EMAIL || 'onboarding@resend.dev'
     const { data, error } = await client.emails.send({
-      from: 'FlightSlot <noreply@bprime.net>',
+      from: `FlightSlot <${fromEmail}>`,
       to: options.to,
       subject: options.subject,
       html: options.html,
