@@ -30,9 +30,9 @@ export function Input({
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
       {label && (
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label style={{ fontSize: '0.875rem', fontWeight: '500', color: '#d1d5db' }}>
           {label}
-          {required && <span className="text-red-500 dark:text-red-400 ml-1">*</span>}
+          {required && <span style={{ color: '#f87171', marginLeft: '0.25rem' }}>*</span>}
         </label>
       )}
       <input
@@ -43,14 +43,25 @@ export function Input({
         disabled={disabled}
         required={required}
         maxLength={maxLength}
-        className={`
-          px-4 py-2 border rounded-lg transition-colors duration-200
-          ${error ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'}
-          ${disabled ? 'bg-gray-100 dark:bg-gray-800 cursor-not-allowed' : 'bg-white dark:bg-gray-700 dark:text-white'}
-          focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent
-        `}
+        style={{
+          padding: '0.5rem 1rem',
+          border: error ? '1px solid #f87171' : '1px solid #4b5563',
+          borderRadius: '0.5rem',
+          backgroundColor: disabled ? '#1f2937' : '#374151',
+          color: '#ffffff',
+          transition: 'all 0.2s',
+          outline: 'none'
+        }}
+        onFocus={(e) => {
+          e.target.style.borderColor = '#3b82f6'
+          e.target.style.boxShadow = '0 0 0 2px rgba(59, 130, 246, 0.3)'
+        }}
+        onBlur={(e) => {
+          e.target.style.borderColor = error ? '#f87171' : '#4b5563'
+          e.target.style.boxShadow = 'none'
+        }}
       />
-      {error && <span className="text-sm text-red-500 dark:text-red-400">{error}</span>}
+      {error && <span style={{ fontSize: '0.875rem', color: '#f87171' }}>{error}</span>}
     </div>
   )
 }

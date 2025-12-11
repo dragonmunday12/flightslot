@@ -3,27 +3,458 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 255, 255, 255;
-  --background-end-rgb: 255, 255, 255;
+  --foreground-rgb: 15, 23, 42;
+  --background-start-rgb: 248, 250, 252;
+  --background-end-rgb: 248, 250, 252;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 17, 24, 39;
-    --background-end-rgb: 17, 24, 39;
+    --foreground-rgb: 248, 250, 252;
+    --background-start-rgb: 15, 23, 42;
+    --background-end-rgb: 15, 23, 42;
   }
 }
 
+html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
 body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  background: rgb(var(--background-start-rgb));
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Professional card */
+.card {
+  background-color: white !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .card {
+    background-color: #2d3748 !important;
+    border-color: #4a5568 !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important;
+  }
+}
+
+/* Badge styles */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.625rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-success {
+  background-color: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.badge-pending {
+  background-color: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.badge-info {
+  background-color: #f0f9ff;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.badge-danger {
+  background-color: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+/* Button styles */
+.btn {
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  border: none;
+}
+
+.btn-primary {
+  background-color: #2563eb;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #1d4ed8;
+}
+
+.btn-primary:active {
+  transform: scale(0.95);
+}
+
+.btn-accent {
+  background-color: #dc2626;
+  color: white;
+}
+
+.btn-accent:hover {
+  background-color: #b91c1c;
+}
+
+.btn-accent:active {
+  transform: scale(0.95);
+}
+
+.btn-secondary {
+  background-color: #e5e7eb;
+  color: #1f2937;
+}
+
+.btn-secondary:hover {
+  background-color: #d1d5db;
+}
+
+.btn-secondary:active {
+  transform: scale(0.95);
+}
+
+@media (prefers-color-scheme: dark) {
+  .btn-secondary {
+    background-color: #374151;
+    color: #e5e7eb;
+  }
+
+  .btn-secondary:hover {
+    background-color: #4b5563;
+  }
+}
+
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+/* Calendar cell styles */
+.calendar-day {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  height: 140px;
+  overflow-y: auto;
+  transition: all 0.2s;
+}
+
+@media (prefers-color-scheme: dark) {
+  .calendar-day {
+    border-color: #374151;
+  }
+}
+
+.calendar-day-today {
+  border-color: #3b82f6;
+  border-width: 2px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.calendar-day-blocked {
+  background-color: #fef2f2;
+}
+
+@media (prefers-color-scheme: dark) {
+  .calendar-day-blocked {
+    background-color: rgba(127, 29, 29, 0.2);
+  }
+}
+
+.calendar-day-normal {
+  background-color: white;
+  border-color: #e5e7eb;
+}
+
+@media (prefers-color-scheme: dark) {
+  .calendar-day-normal {
+    background-color: #1f2937;
+    border-color: #374151;
+  }
+}
+
+/* Schedule badge on calendar - Student created (removable) */
+.schedule-confirmed {
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .schedule-confirmed {
+    background-color: rgba(6, 95, 70, 0.3);
+    color: #a7f3d0;
+    border-color: #065f46;
+  }
+}
+
+/* Schedule badge on calendar - Instructor created (locked) */
+.schedule-confirmed-locked {
+  background-color: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+}
+
+@media (prefers-color-scheme: dark) {
+  .schedule-confirmed-locked {
+    background-color: rgba(30, 64, 175, 0.3);
+    color: #93c5fd;
+    border-color: #1e40af;
+  }
+}
+
+.schedule-pending {
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+@media (prefers-color-scheme: dark) {
+  .schedule-pending {
+    background-color: rgba(146, 64, 14, 0.3);
+    color: #fde68a;
+    border-color: #92400e;
+  }
+}
+
+/* Reserved time slot (taken by another student) */
+.schedule-reserved {
+  background-color: #e5e7eb;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+}
+
+@media (prefers-color-scheme: dark) {
+  .schedule-reserved {
+    background-color: rgba(107, 114, 128, 0.3);
+    color: #9ca3af;
+    border-color: #6b7280;
+  }
+}
+
+/* Day header responsive text */
+.day-header-full {
+  display: inline;
+}
+
+.day-header-short {
+  display: none;
+}
+
+/* Form placeholder responsive text */
+.form-placeholder-full {
+  display: inline;
+}
+
+.form-placeholder-short {
+  display: none;
+}
+
+.form-button-full {
+  display: inline;
+}
+
+.form-button-short {
+  display: none;
+}
+
+/* Select placeholder text using CSS */
+.form-select-placeholder option[value=""]:first-child::before {
+  content: "Student...";
+}
+
+.form-select-time option[value=""]:first-child::before {
+  content: "Time...";
+}
+
+/* Mobile responsive calendar fixes */
+@media (max-width: 640px) {
+  /* Show short day names on mobile */
+  .day-header-full {
+    display: none !important;
+  }
+
+  .day-header-short {
+    display: inline !important;
+  }
+
+  /* Show short form placeholders on mobile */
+  .form-placeholder-full {
+    display: none !important;
+  }
+
+  .form-placeholder-short {
+    display: inline !important;
+  }
+
+  .form-button-full {
+    display: none !important;
+  }
+
+  .form-button-short {
+    display: inline !important;
+  }
+
+  /* Change select placeholders on mobile */
+  .form-select-placeholder option[value=""]:first-child::before {
+    content: "--" !important;
+  }
+
+  .form-select-time option[value=""]:first-child::before {
+    content: "--" !important;
+  }
+
+  /* Reduce calendar grid gap on mobile */
+  .grid-cols-7 {
+    gap: 0.125rem !important;
+  }
+
+  /* Make calendar cells smaller on mobile */
+  .calendar-day {
+    min-height: 90px !important;
+    padding: 0.125rem !important;
+    font-size: 0.55rem !important;
+  }
+
+  /* Reduce day header font size and spacing */
+  .grid.grid-cols-7 > div.text-center {
+    font-size: 0.5rem !important;
+    padding-bottom: 0.25rem !important;
+  }
+
+  /* Reduce day number size */
+  .calendar-day .text-sm {
+    font-size: 0.6rem !important;
+  }
+
+  /* Make schedule blocks more compact */
+  .schedule-mine,
+  .schedule-reserved {
+    padding: 0.125rem 0.25rem !important;
+    font-size: 0.5rem !important;
+    line-height: 1.1 !important;
+  }
+
+  .schedule-mine .font-semibold,
+  .schedule-reserved .font-semibold {
+    font-size: 0.5rem !important;
+  }
+
+  /* Compact request/add buttons */
+  .calendar-day button {
+    font-size: 0.45rem !important;
+    padding: 0.1rem 0.15rem !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  /* Compact unavailable/blocked text */
+  .calendar-day .text-xs,
+  .calendar-day .text-center {
+    font-size: 0.5rem !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  /* Reduce card padding on mobile */
+  .card {
+    padding: 0.5rem !important;
+  }
+
+  /* Make headers more compact */
+  h1 {
+    font-size: 1.1rem !important;
+  }
+
+  h2 {
+    font-size: 0.9rem !important;
+  }
+
+  /* Reduce month navigation padding */
+  .flex.items-center.justify-between.mb-6 {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  /* Make prev/next buttons smaller */
+  .btn-sm {
+    font-size: 0.65rem !important;
+    padding: 0.25rem 0.4rem !important;
+  }
+
+  /* Compact the flex gap in day cells */
+  .calendar-day .flex.justify-between {
+    margin-bottom: 0.25rem !important;
+  }
+
+  /* Make space between schedules smaller */
+  .space-y-1\.5 {
+    gap: 0.25rem !important;
+  }
+
+  /* Smaller page padding */
+  .max-w-7xl {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+
+  /* Force CSS re-parse */
+}
+/* End mobile responsive */
+
+/* Input styles */
+.input {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  background-color: white;
+  color: #111827;
+  transition: box-shadow 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  ring: 2px solid #3b82f6;
+  border-color: transparent;
+}
+
+@media (prefers-color-scheme: dark) {
+  .input {
+    border-color: #4b5563;
+    background-color: #1f2937;
+    color: #f3f4f6;
+  }
+}
+
+.input-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
 }
 
 @layer utilities {

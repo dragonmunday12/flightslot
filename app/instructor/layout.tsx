@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 
@@ -10,6 +11,7 @@ export default function InstructorLayout({
 }) {
   const router = useRouter()
   const pathname = usePathname()
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const handleLogout = async () => {
     try {
@@ -28,85 +30,233 @@ export default function InstructorLayout({
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+    <div style={{ minHeight: '100vh', backgroundColor: '#0f172a' }}>
+      <style>{`
+        @media (min-width: 1024px) {
+          .desktop-nav { display: flex !important; align-items: center; gap: 0.5rem; }
+          .mobile-menu-button { display: none !important; }
+          .mobile-menu { display: none !important; }
+        }
+        @media (max-width: 1023px) {
+          .desktop-nav { display: none !important; }
+          .mobile-menu-button { display: flex !important; }
+        }
+      `}</style>
       {/* Navigation */}
-      <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex">
-              {/* Logo */}
-              <div className="flex-shrink-0 flex items-center">
-                <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">FlightSlot</span>
-              </div>
+      <nav style={{
+        backgroundColor: '#1e293b',
+        borderBottom: '1px solid #334155',
+        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
+      }}>
+        <div style={{ maxWidth: '80rem', margin: '0 auto', padding: '0 1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '4rem' }}>
+            {/* Logo */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <svg style={{ width: '2rem', height: '2rem', color: '#3b82f6' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 18v-6a9 9 0 0118 0v6M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z" />
+              </svg>
+              <span style={{ fontSize: '1.5rem', fontWeight: '700', color: '#3b82f6' }}>FlightSlot</span>
+            </div>
 
-              {/* Nav Links */}
-              <div className="hidden sm:ml-8 sm:flex sm:space-x-4">
+            {/* Desktop Nav Links - Hidden on mobile, flex on large screens */}
+            <div className="desktop-nav" style={{ display: 'none' }}>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
                 {navItems.map((item) => {
                   const isActive = pathname === item.href
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`
-                        inline-flex items-center px-4 py-2 text-sm font-medium rounded-md
-                        transition-colors duration-200
-                        ${
-                          isActive
-                            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        padding: '0.5rem 1rem',
+                        fontSize: '0.875rem',
+                        fontWeight: '500',
+                        borderRadius: '0.375rem',
+                        textDecoration: 'none',
+                        backgroundColor: isActive ? '#1e3a8a' : 'transparent',
+                        color: isActive ? '#93c5fd' : '#9ca3af',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseOver={(e) => {
+                        if (!isActive) {
+                          e.currentTarget.style.backgroundColor = '#374151'
+                          e.currentTarget.style.color = '#d1d5db'
                         }
-                      `}
+                      }}
+                      onMouseOut={(e) => {
+                        if (!isActive) {
+                          e.currentTarget.style.backgroundColor = 'transparent'
+                          e.currentTarget.style.color = '#9ca3af'
+                        }
+                      }}
                     >
-                      <span className="mr-2">{item.icon}</span>
+                      <span style={{ marginRight: '0.5rem' }}>{item.icon}</span>
                       {item.label}
                     </Link>
                   )
                 })}
               </div>
-            </div>
 
-            {/* Right side - Instructor badge & logout */}
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full transition-colors">
-                Instructor
-              </span>
-              <button
-                onClick={handleLogout}
-                className="text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 font-medium transition-colors"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-
-          {/* Mobile navigation */}
-          <div className="sm:hidden pb-3 pt-2 space-y-1">
-            {navItems.map((item) => {
-              const isActive = pathname === item.href
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`
-                    block px-3 py-2 text-base font-medium rounded-md transition-colors
-                    ${
-                      isActive
-                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }
-                  `}
+              {/* Right side - Instructor badge & logout */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginLeft: '1rem' }}>
+                <span style={{
+                  fontSize: '0.875rem',
+                  color: '#d1d5db',
+                  backgroundColor: '#374151',
+                  padding: '0.375rem 0.875rem',
+                  borderRadius: '9999px',
+                  fontWeight: '500'
+                }}>
+                  Instructor
+                </span>
+                <button
+                  onClick={handleLogout}
+                  style={{
+                    fontSize: '0.875rem',
+                    color: '#ef4444',
+                    fontWeight: '500',
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '0.375rem',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = '#7f1d1d'
+                    e.currentTarget.style.color = '#fca5a5'
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent'
+                    e.currentTarget.style.color = '#ef4444'
+                  }}
                 >
-                  <span className="mr-2">{item.icon}</span>
-                  {item.label}
-                </Link>
-              )
-            })}
+                  Logout
+                </button>
+              </div>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="mobile-menu-button"
+              style={{
+                display: 'none',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0.5rem',
+                color: '#d1d5db',
+                backgroundColor: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                borderRadius: '0.375rem',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.backgroundColor = '#374151'
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent'
+              }}
+            >
+              <svg style={{ width: '1.5rem', height: '1.5rem' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                {isMobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
           </div>
+
+          {/* Mobile Menu */}
+          {isMobileMenuOpen && (
+            <div className="mobile-menu" style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.5rem',
+              paddingBottom: '1rem',
+              borderTop: '1px solid #334155',
+              marginTop: '0.5rem',
+              paddingTop: '0.5rem'
+            }}>
+              {navItems.map((item) => {
+                const isActive = pathname === item.href
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '0.75rem 1rem',
+                      fontSize: '0.875rem',
+                      fontWeight: '500',
+                      borderRadius: '0.375rem',
+                      textDecoration: 'none',
+                      backgroundColor: isActive ? '#1e3a8a' : 'transparent',
+                      color: isActive ? '#93c5fd' : '#9ca3af',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <span style={{ marginRight: '0.75rem', fontSize: '1.25rem' }}>{item.icon}</span>
+                    {item.label}
+                  </Link>
+                )
+              })}
+
+              <div style={{
+                borderTop: '1px solid #334155',
+                marginTop: '0.5rem',
+                paddingTop: '0.5rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem'
+              }}>
+                <div style={{
+                  fontSize: '0.875rem',
+                  color: '#d1d5db',
+                  backgroundColor: '#374151',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '0.375rem',
+                  fontWeight: '500',
+                  textAlign: 'center'
+                }}>
+                  Instructor
+                </div>
+                <button
+                  onClick={handleLogout}
+                  style={{
+                    fontSize: '0.875rem',
+                    color: '#ef4444',
+                    fontWeight: '500',
+                    backgroundColor: 'transparent',
+                    border: '1px solid #ef4444',
+                    cursor: 'pointer',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '0.375rem',
+                    transition: 'all 0.2s',
+                    width: '100%'
+                  }}
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </nav>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main style={{
+        maxWidth: '80rem',
+        margin: '0 auto',
+        padding: '2rem 1rem',
+        minHeight: 'calc(100vh - 4rem)'
+      }}>
         {children}
       </main>
     </div>

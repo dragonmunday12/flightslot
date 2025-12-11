@@ -67,53 +67,59 @@ export default function RequestsPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Schedule Requests</h1>
-        <p className="text-gray-600 mt-2">
+        <h1 className="text-3xl font-bold text-white">Schedule Requests</h1>
+        <p className="text-gray-300 mt-2">
           Review and approve student requests for time slots
         </p>
       </div>
 
       {/* Pending Requests */}
       <div className="mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        <h2 className="text-xl font-semibold text-white mb-4">
           Pending Requests ({pendingRequests.length})
         </h2>
 
         {pendingRequests.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+          <div style={{ backgroundColor: '#2d3748', borderRadius: '0.5rem', padding: '2rem', textAlign: 'center', color: '#9ca3af' }}>
             No pending requests
           </div>
         ) : (
-          <div className="space-y-4">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {pendingRequests.map((request) => (
               <div
                 key={request.id}
-                className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
+                style={{
+                  backgroundColor: '#2d3748',
+                  borderRadius: '0.5rem',
+                  padding: '1.5rem',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)',
+                  transition: 'box-shadow 0.2s'
+                }}
               >
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#ffffff' }}>
                         {request.student.name}
                       </h3>
-                      <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded-full">
+                      <span style={{ padding: '0.25rem 0.75rem', backgroundColor: '#fef3c7', color: '#92400e', fontSize: '0.875rem', borderRadius: '9999px' }}>
                         Pending
                       </span>
                     </div>
-                    <div className="space-y-1 text-sm text-gray-600">
-                      <p>
-                        <strong>Date:</strong> {formatDateForDisplay(request.date)}
+                    <div style={{ fontSize: '0.875rem', color: '#d1d5db' }}>
+                      <p style={{ marginBottom: '0.25rem' }}>
+                        <strong style={{ color: '#ffffff' }}>Date:</strong> {formatDateForDisplay(request.date)}
                       </p>
-                      <p>
-                        <strong>Time:</strong> {request.timeBlock.name} (
+                      <p style={{ marginBottom: '0.25rem' }}>
+                        <strong style={{ color: '#ffffff' }}>Time:</strong> {request.timeBlock.name} (
                         {request.timeBlock.startTime} - {request.timeBlock.endTime})
                       </p>
                       {request.message && (
-                        <p>
-                          <strong>Message:</strong> {request.message}
+                        <p style={{ marginBottom: '0.25rem' }}>
+                          <strong style={{ color: '#ffffff' }}>Message:</strong> {request.message}
                         </p>
                       )}
-                      <p className="text-xs text-gray-400">
+                      <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '0.5rem' }}>
                         Requested {formatDateForDisplay(request.createdAt)}
                       </p>
                     </div>
@@ -143,56 +149,55 @@ export default function RequestsPage() {
       {/* Processed Requests */}
       {processedRequests.length > 0 && (
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          <h2 className="text-xl font-semibold text-white mb-4">
             Processed Requests ({processedRequests.length})
           </h2>
 
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+          <div style={{ backgroundColor: '#2d3748', borderRadius: '0.5rem', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)' }}>
+            <table className="min-w-full divide-y divide-gray-200" style={{ width: '100%' }}>
+              <thead style={{ backgroundColor: '#374151' }}>
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th style={{ padding: '0.75rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     Student
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th style={{ padding: '0.75rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     Date
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th style={{ padding: '0.75rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     Time
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th style={{ padding: '0.75rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     Status
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {processedRequests.map((request) => (
-                  <tr key={request.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
+              <tbody style={{ backgroundColor: '#2d3748' }}>
+                {processedRequests.map((request, index) => (
+                  <tr key={request.id} style={{ borderTop: index > 0 ? '1px solid #4a5568' : 'none' }}>
+                    <td style={{ padding: '1rem 1.5rem', whiteSpace: 'nowrap' }}>
+                      <div style={{ fontSize: '0.875rem', fontWeight: '500', color: '#f3f4f6' }}>
                         {request.student.name}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">
+                    <td style={{ padding: '1rem 1.5rem', whiteSpace: 'nowrap' }}>
+                      <div style={{ fontSize: '0.875rem', color: '#d1d5db' }}>
                         {formatDateForDisplay(request.date)}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">
+                    <td style={{ padding: '1rem 1.5rem', whiteSpace: 'nowrap' }}>
+                      <div style={{ fontSize: '0.875rem', color: '#d1d5db' }}>
                         {request.timeBlock.name}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td style={{ padding: '1rem 1.5rem', whiteSpace: 'nowrap' }}>
                       <span
-                        className={`
-                          px-3 py-1 text-sm rounded-full
-                          ${
-                            request.status === 'approved'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
-                          }
-                        `}
+                        style={{
+                          padding: '0.25rem 0.75rem',
+                          fontSize: '0.875rem',
+                          borderRadius: '9999px',
+                          backgroundColor: request.status === 'approved' ? '#d1fae5' : '#fee2e2',
+                          color: request.status === 'approved' ? '#065f46' : '#991b1b'
+                        }}
                       >
                         {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
                       </span>

@@ -31,24 +31,68 @@ export function Modal({ isOpen, onClose, title, children, footer }: ModalProps) 
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 9999,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '1rem'
+    }}>
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black bg-opacity-50 dark:bg-opacity-70"
         onClick={onClose}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          zIndex: 9999
+        }}
       />
 
       {/* Modal */}
-      <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto transition-colors">
+      <div style={{
+        position: 'relative',
+        backgroundColor: '#1e293b',
+        borderRadius: '0.5rem',
+        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
+        maxWidth: '28rem',
+        width: '100%',
+        maxHeight: '90vh',
+        overflowY: 'auto',
+        zIndex: 10000
+      }}>
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h2>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '1.5rem',
+          borderBottom: '1px solid #334155'
+        }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#ffffff' }}>{title}</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
+            style={{
+              color: '#9ca3af',
+              backgroundColor: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '0.25rem',
+              transition: 'color 0.2s'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.color = '#d1d5db'}
+            onMouseOut={(e) => e.currentTarget.style.color = '#9ca3af'}
           >
             <svg
-              className="w-6 h-6"
+              style={{ width: '1.5rem', height: '1.5rem' }}
               fill="none"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -62,10 +106,18 @@ export function Modal({ isOpen, onClose, title, children, footer }: ModalProps) 
         </div>
 
         {/* Content */}
-        <div className="p-6">{children}</div>
+        <div style={{ padding: '1.5rem' }}>{children}</div>
 
         {/* Footer */}
-        {footer && <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">{footer}</div>}
+        {footer && (
+          <div style={{
+            padding: '1.5rem',
+            borderTop: '1px solid #334155',
+            backgroundColor: '#0f172a'
+          }}>
+            {footer}
+          </div>
+        )}
       </div>
     </div>
   )

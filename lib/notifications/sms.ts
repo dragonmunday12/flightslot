@@ -47,7 +47,7 @@ export async function sendStudentWelcomeSMS(
   phone: string,
   pin: string
 ): Promise<boolean> {
-  const message = `Hi ${studentName}! Welcome to FlightSlot. Your instructor has added you to their flight scheduling system.\n\nYour PIN: ${pin}\n\nVisit bprime.net and enter your PIN to view your schedule.`
+  const message = `Hi ${studentName}! Welcome to FlightSlot. Your instructor has added you to their event scheduling system.\n\nYour PIN: ${pin}\n\nVisit bprime.net and enter your PIN to view your schedule.`
 
   return sendSMS({
     to: phone,

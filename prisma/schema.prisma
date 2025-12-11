@@ -54,15 +54,16 @@ model TimeBlock {
 
 // Schedule assignments (which student is assigned to which time block on which day)
 model Schedule {
-  id          String    @id @default(cuid())
-  date        DateTime  // The specific date
-  studentId   String
-  timeBlockId String
-  isRecurring Boolean   @default(false) // Whether this is part of a recurring schedule
-  recurringId String?   // Groups recurring schedules together
-  notes       String?   // Optional notes
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id                  String    @id @default(cuid())
+  date                DateTime  // The specific date
+  studentId           String
+  timeBlockId         String
+  isRecurring         Boolean   @default(false) // Whether this is part of a recurring schedule
+  recurringId         String?   // Groups recurring schedules together
+  createdByInstructor Boolean   @default(true) // Whether created by instructor (true) or from student request (false)
+  notes               String?   // Optional notes
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   // Relations
   student   Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)

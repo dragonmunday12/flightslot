@@ -13,6 +13,7 @@ export default function StudentsPage() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [showScheduleModal, setShowScheduleModal] = useState(false)
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
+  const [showPinModal, setShowPinModal] = useState(false)
 
   // Form states
   const [name, setName] = useState('')
@@ -20,6 +21,7 @@ export default function StudentsPage() {
   const [phone, setPhone] = useState('')
   const [error, setError] = useState('')
   const [newPin, setNewPin] = useState('')
+  const [pinModalTitle, setPinModalTitle] = useState('')
 
   // Schedule form states
   const [scheduleDate, setScheduleDate] = useState('')
@@ -73,13 +75,12 @@ export default function StudentsPage() {
       }
 
       setNewPin(data.pin)
+      setPinModalTitle(`Student Added: ${name}`)
+      setShowPinModal(true)
       fetchStudents()
       setName('')
       setEmail('')
       setPhone('')
-
-      // Show PIN to instructor
-      alert(`Student added successfully!\n\nGenerated PIN: ${data.pin}\n\nThis PIN has been sent to the student via ${phone ? 'SMS' : ''}${email && phone ? ' and ' : ''}${email ? 'email' : ''}.`)
       setShowAddModal(false)
     } catch (error) {
       setError('An error occurred while adding the student')
@@ -87,10 +88,6 @@ export default function StudentsPage() {
   }
 
   const handleDeleteStudent = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this student? All their schedules will be removed.')) {
-      return
-    }
-
     try {
       const res = await fetch(`/api/students/${id}`, { method: 'DELETE' })
       if (res.ok) {
@@ -101,15 +98,24 @@ export default function StudentsPage() {
     }
   }
 
-  const handleResetPin = async (id: string) => {
-    if (!confirm('Generate a new PIN for this student?')) return
+  const handleResetPin = async (id: string, studentName: string) => {
+    const confirmed = window.confirm(
+      `This will generate a NEW PIN for ${studentName}.\n\n` +
+      `The old PIN will no longer work.\n\n` +
+      `Do you want to continue?`
+    )
+
+    if (!confirmed) return
 
     try {
       const res = await fetch(`/api/students/${id}/reset-pin`, { method: 'POST' })
       const data = await res.json()
 
       if (res.ok) {
-        alert(`New PIN generated: ${data.pin}\n\nThis PIN has been sent to the student via SMS.`)
+        setNewPin(data.pin)
+        setPinModalTitle(`PIN Reset: ${studentName}`)
+        setShowPinModal(true)
+        fetchStudents()
       }
     } catch (error) {
       console.error('Error resetting PIN:', error)
@@ -128,14 +134,41 @@ export default function StudentsPage() {
       }
 
       if (isRecurring) {
+        // Validate selected days
+        if (selectedDays.length === 0) {
+          alert('Please select at least one day of the week')
+          return
+        }
+
+        // Validate end date is provided
+        if (!recurringEndDate) {
+          alert('Please select an end date for the recurring schedule')
+          return
+        }
+
+        // Validate end date is after start date
+        if (new Date(recurringEndDate) < new Date(scheduleDate)) {
+          alert('End date must be after start date')
+          return
+        }
+
         payload.recurring = {
           days: selectedDays,
           startDate: scheduleDate,
-          endDate: recurringEndDate || undefined,
+          endDate: recurringEndDate,
         }
+
+        console.log('Recurring schedule data:', {
+          startDate: scheduleDate,
+          endDate: recurringEndDate,
+          days: selectedDays,
+          dayNames: selectedDays.map(d => dayNames[d])
+        })
       } else {
         payload.dates = [scheduleDate]
       }
+
+      console.log('Sending schedule request:', JSON.stringify(payload, null, 2))
 
       const res = await fetch('/api/schedule', {
         method: 'POST',
@@ -144,7 +177,8 @@ export default function StudentsPage() {
       })
 
       if (res.ok) {
-        alert('Schedule added successfully!')
+        const data = await res.json()
+        console.log('Schedule created successfully:', data)
         setShowScheduleModal(false)
         setScheduleDate('')
         setSelectedTimeBlock('')
@@ -152,12 +186,13 @@ export default function StudentsPage() {
         setSelectedDays([])
         setRecurringEndDate('')
       } else {
-        const data = await res.json()
-        alert(data.error || 'Failed to add schedule')
+        const errorData = await res.json()
+        console.error('API Error:', errorData)
+        alert(`Error: ${errorData.error || 'Failed to create schedule'}`)
       }
     } catch (error) {
       console.error('Error adding schedule:', error)
-      alert('An error occurred')
+      alert('Network error - check console for details')
     }
   }
 
@@ -170,77 +205,126 @@ export default function StudentsPage() {
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
   if (loading) {
-    return <div className="text-center py-8">Loading...</div>
+    return <div style={{ textAlign: 'center', padding: '2rem', color: '#d1d5db' }}>Loading...</div>
   }
 
   return (
     <div>
-      <div className="mb-6 flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Students</h1>
+      <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1 style={{ fontSize: '1.875rem', fontWeight: '700', color: '#f3f4f6' }}>Students</h1>
         <Button onClick={() => setShowAddModal(true)}>Add Student</Button>
       </div>
 
       {/* Students List */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Name
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Email
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Phone
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {students.map((student) => (
-              <tr key={student.id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{student.name}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">{student.email || '-'}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">{student.phone || '-'}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                  <button
-                    onClick={() => {
-                      setSelectedStudent(student)
-                      setShowScheduleModal(true)
-                    }}
-                    className="text-blue-600 hover:text-blue-900"
-                  >
-                    Add Schedule
-                  </button>
-                  <button
-                    onClick={() => handleResetPin(student.id)}
-                    className="text-yellow-600 hover:text-yellow-900"
-                  >
-                    Reset PIN
-                  </button>
-                  <button
-                    onClick={() => handleDeleteStudent(student.id)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        {students.map((student) => (
+          <div
+            key={student.id}
+            style={{
+              backgroundColor: '#2d3748',
+              borderRadius: '0.5rem',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)',
+              padding: '1rem',
+              border: '1px solid #4a5568'
+            }}
+          >
+            <div style={{ marginBottom: '0.75rem' }}>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#f3f4f6', marginBottom: '0.5rem' }}>
+                {student.name}
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.875rem', color: '#d1d5db' }}>
+                <div>
+                  <span style={{ color: '#9ca3af', fontWeight: '500' }}>Email:</span> {student.email || '-'}
+                </div>
+                <div>
+                  <span style={{ color: '#9ca3af', fontWeight: '500' }}>Phone:</span> {student.phone || '-'}
+                </div>
+              </div>
+            </div>
+
+            <div style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '0.5rem',
+              borderTop: '1px solid #4a5568',
+              paddingTop: '0.75rem'
+            }}>
+              <button
+                onClick={() => {
+                  setSelectedStudent(student)
+                  setShowScheduleModal(true)
+                }}
+                style={{
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  color: '#ffffff',
+                  backgroundColor: '#3b82f6',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '0.375rem',
+                  transition: 'all 0.2s',
+                  flex: '1',
+                  minWidth: '120px'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#3b82f6'}
+              >
+                Add Schedule
+              </button>
+              <button
+                onClick={() => handleResetPin(student.id, student.name)}
+                style={{
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  color: '#ffffff',
+                  backgroundColor: '#f59e0b',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '0.375rem',
+                  transition: 'all 0.2s',
+                  flex: '1',
+                  minWidth: '120px'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#d97706'}
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f59e0b'}
+              >
+                Reset PIN
+              </button>
+              <button
+                onClick={() => handleDeleteStudent(student.id)}
+                style={{
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  color: '#ffffff',
+                  backgroundColor: '#ef4444',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '0.375rem',
+                  transition: 'all 0.2s',
+                  flex: '1',
+                  minWidth: '120px'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
 
         {students.length === 0 && (
-          <div className="text-center py-12 text-gray-500">
+          <div style={{
+            backgroundColor: '#2d3748',
+            borderRadius: '0.5rem',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)',
+            textAlign: 'center',
+            padding: '3rem',
+            color: '#9ca3af'
+          }}>
             No students yet. Click "Add Student" to get started.
           </div>
         )}
@@ -294,10 +378,62 @@ export default function StudentsPage() {
         </form>
       </Modal>
 
+      {/* PIN Display Modal */}
+      <Modal
+        isOpen={showPinModal}
+        onClose={() => {
+          setShowPinModal(false)
+          setNewPin('')
+        }}
+        title={pinModalTitle}
+      >
+        <div style={{ textAlign: 'center', padding: '1rem' }}>
+          <p style={{ fontSize: '0.875rem', color: '#9ca3af', marginBottom: '1.5rem' }}>
+            Save this PIN securely. It cannot be retrieved later.
+          </p>
+          <div style={{
+            backgroundColor: '#1f2937',
+            border: '2px solid #60a5fa',
+            borderRadius: '0.5rem',
+            padding: '1.5rem',
+            marginBottom: '1.5rem'
+          }}>
+            <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Student PIN
+            </div>
+            <div style={{
+              fontSize: '2.5rem',
+              fontWeight: '700',
+              color: '#60a5fa',
+              fontFamily: 'monospace',
+              letterSpacing: '0.5rem'
+            }}>
+              {newPin}
+            </div>
+          </div>
+          <Button
+            onClick={() => {
+              navigator.clipboard.writeText(newPin)
+              alert('PIN copied to clipboard!')
+            }}
+            fullWidth
+          >
+            Copy PIN to Clipboard
+          </Button>
+        </div>
+      </Modal>
+
       {/* Add Schedule Modal */}
       <Modal
         isOpen={showScheduleModal}
-        onClose={() => setShowScheduleModal(false)}
+        onClose={() => {
+          setShowScheduleModal(false)
+          setScheduleDate('')
+          setSelectedTimeBlock('')
+          setIsRecurring(false)
+          setSelectedDays([])
+          setRecurringEndDate('')
+        }}
         title={`Add Schedule for ${selectedStudent?.name}`}
       >
         <form onSubmit={handleAddSchedule} className="space-y-4">
@@ -335,27 +471,43 @@ export default function StudentsPage() {
           {isRecurring ? (
             <>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#d1d5db', marginBottom: '0.5rem' }}>
                   Select Days
                 </label>
-                <div className="flex gap-2">
-                  {dayNames.map((day, index) => (
-                    <button
-                      key={index}
-                      type="button"
-                      onClick={() => handleDayToggle(index)}
-                      className={`
-                        px-3 py-2 rounded text-sm font-medium
-                        ${
-                          selectedDays.includes(index)
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-200 text-gray-700'
-                        }
-                      `}
-                    >
-                      {day}
-                    </button>
-                  ))}
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  {dayNames.map((day, index) => {
+                    const isSelected = selectedDays.includes(index)
+                    return (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => handleDayToggle(index)}
+                        style={{
+                          padding: '0.5rem 0.75rem',
+                          borderRadius: '0.375rem',
+                          fontSize: '0.875rem',
+                          fontWeight: '500',
+                          backgroundColor: isSelected ? '#3b82f6' : '#4b5563',
+                          color: '#ffffff',
+                          border: 'none',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseOver={(e) => {
+                          if (!isSelected) {
+                            e.currentTarget.style.backgroundColor = '#6b7280'
+                          }
+                        }}
+                        onMouseOut={(e) => {
+                          if (!isSelected) {
+                            e.currentTarget.style.backgroundColor = '#4b5563'
+                          }
+                        }}
+                      >
+                        {day}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
 
@@ -403,7 +555,14 @@ export default function StudentsPage() {
               type="button"
               variant="secondary"
               fullWidth
-              onClick={() => setShowScheduleModal(false)}
+              onClick={() => {
+                setShowScheduleModal(false)
+                setScheduleDate('')
+                setSelectedTimeBlock('')
+                setIsRecurring(false)
+                setSelectedDays([])
+                setRecurringEndDate('')
+              }}
             >
               Cancel
             </Button>

@@ -11,7 +11,9 @@
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "db:generate": "prisma generate",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "clear:events": "tsx scripts/clear-events.ts",
+    "clear:all": "tsx scripts/clear-events.ts --with-blocked-days"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

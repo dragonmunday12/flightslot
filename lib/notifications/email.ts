@@ -78,20 +78,20 @@ export async function sendStudentWelcomeEmail(
           </div>
           <div class="content">
             <p>Hi ${studentName},</p>
-            <p>Your instructor has added you to FlightSlot, their flight scheduling system. You can now view your scheduled flight times online.</p>
+            <p>Your instructor has added you to FlightSlot, their event scheduling system. You can now view your scheduled events online.</p>
             <p>Your personal PIN for accessing the calendar is:</p>
             <div class="pin">${pin}</div>
             <p><strong>How to access your schedule:</strong></p>
             <ol>
               <li>Visit <a href="https://bprime.net">bprime.net</a></li>
               <li>Enter your PIN when prompted</li>
-              <li>View your assigned flight times</li>
+              <li>View your assigned event times</li>
               <li>Request additional time slots if needed</li>
             </ol>
             <p><strong>Keep your PIN safe!</strong> You can request a reset from your instructor if you forget it.</p>
           </div>
           <div class="footer">
-            <p>FlightSlot - Flight Instructor Scheduling Made Easy</p>
+            <p>FlightSlot - Event Scheduling Made Easy</p>
           </div>
         </div>
       </body>

@@ -1,9 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authenticateWithPin, createSession } from '@/lib/auth'
 import { isValidPin } from '@/lib/utils'
+import { checkRateLimit } from '@/lib/validation'
 
 export async function POST(request: NextRequest) {
   try {
+    // Get client IP for rate limiting
+    const forwarded = request.headers.get('x-forwarded-for')
+    const ip = forwarded ? forwarded.split(',')[0] : request.headers.get('x-real-ip') || 'unknown'
+
+    // Rate limiting: 5 attempts per minute per IP
+    const rateLimit = checkRateLimit(`login:${ip}`, 5, 1, 60000)
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many login attempts. Please try again later.' },
+        { status: 429 }
+      )
+    }
+
     const { pin } = await request.json()
 
     // Validate PIN format

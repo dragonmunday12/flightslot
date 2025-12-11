@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db'
 import { hashPin, generatePin } from '@/lib/auth'
 import { sendStudentWelcomeEmail } from '@/lib/notifications/email'
 import { sendStudentWelcomeSMS } from '@/lib/notifications/sms'
+import { validateStudentName, sanitizeEmail, sanitizePhone } from '@/lib/validation'
 
 // GET all students
 export async function GET(request: NextRequest) {
@@ -38,11 +39,37 @@ export async function POST(request: NextRequest) {
 
     const { name, phone, email } = await request.json()
 
-    if (!name) {
+    // Validate student name
+    const nameValidation = validateStudentName(name)
+    if (!nameValidation.valid) {
       return NextResponse.json(
-        { error: 'Student name is required' },
+        { error: nameValidation.error || 'Invalid name' },
         { status: 400 }
       )
+    }
+
+    // Sanitize and validate email if provided
+    let sanitizedEmail: string | null = null
+    if (email) {
+      sanitizedEmail = sanitizeEmail(email)
+      if (!sanitizedEmail) {
+        return NextResponse.json(
+          { error: 'Invalid email address' },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Sanitize and validate phone if provided
+    let sanitizedPhone: string | null = null
+    if (phone) {
+      sanitizedPhone = sanitizePhone(phone)
+      if (!sanitizedPhone) {
+        return NextResponse.json(
+          { error: 'Invalid phone number' },
+          { status: 400 }
+        )
+      }
     }
 
     // Generate a random PIN for the student
@@ -52,19 +79,19 @@ export async function POST(request: NextRequest) {
     // Create student
     const student = await prisma.student.create({
       data: {
-        name,
-        phone: phone || null,
-        email: email || null,
+        name: name.trim(),
+        phone: sanitizedPhone,
+        email: sanitizedEmail,
         pin: hashedPin,
       },
     })
 
     // Send welcome notifications
-    if (email) {
-      await sendStudentWelcomeEmail(name, email, pin)
+    if (sanitizedEmail) {
+      await sendStudentWelcomeEmail(name.trim(), sanitizedEmail, pin)
     }
-    if (phone) {
-      await sendStudentWelcomeSMS(name, phone, pin)
+    if (sanitizedPhone) {
+      await sendStudentWelcomeSMS(name.trim(), sanitizedPhone, pin)
     }
 
     return NextResponse.json({

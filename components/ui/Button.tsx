@@ -2,7 +2,7 @@
 
 import React from 'react'
 
-type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'success'
+type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'success' | 'warning'
 
 type ButtonProps = {
   children: React.ReactNode
@@ -19,6 +19,7 @@ const variantStyles: Record<ButtonVariant, string> = {
   secondary: 'bg-gray-600 hover:bg-gray-700 dark:bg-gray-500 dark:hover:bg-gray-600 text-white',
   danger: 'bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-white',
   success: 'bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white',
+  warning: 'bg-orange-600 hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600 text-white',
 }
 
 export function Button({

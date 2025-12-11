@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**FlightSlot** is a complete flight instructor scheduling web application built for ATP Flight School instructors to manage student schedules, handle time slot requests, and streamline communication.
+**FlightSlot** is a complete flight instructor scheduling web application built for flight instructors to manage student schedules, handle time slot requests, and streamline communication.
 
 **Built**: November 30, 2025
 **Tech Stack**: Next.js 16, TypeScript, Tailwind CSS, Prisma, SQLite

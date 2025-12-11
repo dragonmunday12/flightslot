@@ -110,14 +110,46 @@ export function getRecurringDates(
   endDate?: Date
 ): Date[] {
   const dates: Date[] = []
-  const end = endDate || addMonths(startDate, 2) // Default to 2 months if no end date
 
+  // endDate is now required - don't default to 2 months
+  if (!endDate) {
+    console.error('getRecurringDates: endDate is required')
+    return dates
+  }
+
+  // Safety limit: maximum 365 days to prevent infinite loops
+  const maxIterations = 365
+  let iterations = 0
+
+  // Create a new date to avoid modifying the original
   let current = new Date(startDate)
-  while (current <= end) {
-    if (daysOfWeek.includes(current.getDay())) {
+
+  // Normalize dates to midnight for comparison
+  const normalizedEnd = new Date(endDate)
+  normalizedEnd.setHours(23, 59, 59, 999)
+
+  console.log('getRecurringDates called with:')
+  console.log('  Start:', startDate.toISOString(), '→', startDate.toDateString())
+  console.log('  End:', endDate.toISOString(), '→', endDate.toDateString())
+  console.log('  Normalized End:', normalizedEnd.toISOString())
+  console.log('  Days of week:', daysOfWeek)
+
+  while (current <= normalizedEnd && iterations < maxIterations) {
+    const currentDay = current.getDay()
+    if (daysOfWeek.includes(currentDay)) {
       dates.push(new Date(current))
+      if (dates.length <= 3 || dates.length >= 100) {
+        console.log(`  Match #${dates.length}: ${current.toDateString()} (day ${currentDay})`)
+      }
     }
     current.setDate(current.getDate() + 1)
+    iterations++
+  }
+
+  console.log(`getRecurringDates: Generated ${dates.length} dates (${iterations} iterations)`)
+
+  if (iterations >= maxIterations) {
+    console.warn('getRecurringDates: Hit maxIterations limit!')
   }
 
   return dates

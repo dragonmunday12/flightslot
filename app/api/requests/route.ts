@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db'
 import { sendRequestNotificationEmail } from '@/lib/notifications/email'
 import { sendRequestNotificationSMS } from '@/lib/notifications/sms'
 import { formatDateForDisplay } from '@/lib/utils'
+import { isValidDateString, isValidUUID, validateMessage } from '@/lib/validation'
 
 // GET all requests (filtered by role)
 export async function GET(request: NextRequest) {
@@ -47,9 +48,27 @@ export async function POST(request: NextRequest) {
 
     const { date, timeBlockId, message } = await request.json()
 
-    if (!date || !timeBlockId) {
+    // Validate date
+    if (!date || !isValidDateString(date)) {
       return NextResponse.json(
-        { error: 'Date and time block are required' },
+        { error: 'Invalid date format' },
+        { status: 400 }
+      )
+    }
+
+    // Validate timeBlockId
+    if (!timeBlockId || !isValidUUID(timeBlockId)) {
+      return NextResponse.json(
+        { error: 'Invalid time block ID' },
+        { status: 400 }
+      )
+    }
+
+    // Validate and sanitize message
+    const messageValidation = validateMessage(message || '')
+    if (!messageValidation.valid) {
+      return NextResponse.json(
+        { error: messageValidation.error || 'Invalid message' },
         { status: 400 }
       )
     }
@@ -109,7 +128,7 @@ export async function POST(request: NextRequest) {
         studentId: user.id,
         date: requestDate,
         timeBlockId,
-        message: message || null,
+        message: messageValidation.sanitized || null,
         status: 'pending',
       },
       include: {

@@ -66,6 +66,7 @@ export async function POST(
         date: requestData.date,
         timeBlockId: requestData.timeBlockId,
         isRecurring: false,
+        createdByInstructor: false,
       },
       include: {
         student: true,

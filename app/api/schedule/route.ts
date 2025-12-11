@@ -75,15 +75,76 @@ export async function POST(request: NextRequest) {
 
     // Handle recurring schedules
     if (recurring && recurring.days && recurring.days.length > 0) {
+      console.log('Recurring schedule request received:', JSON.stringify(recurring, null, 2))
+
+      // Validate end date is provided
+      if (!recurring.endDate || recurring.endDate === '') {
+        console.log('ERROR: End date is missing or empty')
+        return NextResponse.json(
+          { error: 'End date is required for recurring schedules' },
+          { status: 400 }
+        )
+      }
+
+      // Validate days array
+      if (!recurring.days || recurring.days.length === 0) {
+        console.log('ERROR: No days selected')
+        return NextResponse.json(
+          { error: 'Please select at least one day of the week' },
+          { status: 400 }
+        )
+      }
+
       const recurringId = generateRecurringId()
       // Parse dates at noon UTC to avoid timezone issues
       const startDate = new Date(recurring.startDate + 'T12:00:00.000Z')
-      const endDate = recurring.endDate ? new Date(recurring.endDate + 'T12:00:00.000Z') : undefined
+      const endDate = new Date(recurring.endDate + 'T12:00:00.000Z')
+
+      console.log('Parsed dates - Start:', startDate.toISOString(), 'End:', endDate.toISOString())
+      console.log('Start:', recurring.startDate, '→', startDate.toDateString())
+      console.log('End:', recurring.endDate, '→', endDate.toDateString())
+
+      // Validate dates
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        console.log('ERROR: Invalid date format')
+        return NextResponse.json(
+          { error: 'Invalid date format' },
+          { status: 400 }
+        )
+      }
+
+      if (endDate < startDate) {
+        console.log('ERROR: End date is before start date')
+        return NextResponse.json(
+          { error: 'End date must be after start date' },
+          { status: 400 }
+        )
+      }
+
       const recurringDates = getRecurringDates(
         recurring.days,
         startDate,
         endDate
       )
+
+      console.log(`Creating recurring schedule: ${recurringDates.length} dates from ${recurring.startDate} to ${recurring.endDate}`)
+      console.log('Selected days of week:', recurring.days)
+      console.log('First 5 dates:', recurringDates.slice(0, 5).map(d => d.toISOString()))
+      console.log('Last 5 dates:', recurringDates.slice(-5).map(d => d.toISOString()))
+
+      if (recurringDates.length === 0) {
+        return NextResponse.json(
+          { error: 'No dates match the selected criteria' },
+          { status: 400 }
+        )
+      }
+
+      if (recurringDates.length > 365) {
+        return NextResponse.json(
+          { error: 'Date range is too large (maximum 365 occurrences)' },
+          { status: 400 }
+        )
+      }
 
       const schedules = []
 

@@ -15,10 +15,20 @@ export default function StudentDashboardPage() {
   const [requestingDate, setRequestingDate] = useState<Date | null>(null)
   const [selectedTimeBlock, setSelectedTimeBlock] = useState('')
   const [requestMessage, setRequestMessage] = useState('')
+  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
     fetchData()
   }, [currentMonth])
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 640)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   const fetchData = async () => {
     setLoading(true)
@@ -32,9 +42,9 @@ export default function StudentDashboardPage() {
       setSchedules(schedulesData)
 
       // Fetch all schedules to show unavailable slots
-      // Note: The API will filter this on backend if student, showing only their own
-      // For this demo, we'll just use the same data
-      setAllSchedules(schedulesData)
+      const allSchedulesRes = await fetch(`/api/schedule/all?month=${month}&year=${year}`)
+      const allSchedulesData = await allSchedulesRes.json()
+      setAllSchedules(allSchedulesData)
 
       const [timeBlocksRes, requestsRes, blockedDaysRes] = await Promise.all([
         fetch('/api/time-blocks'),
@@ -95,14 +105,32 @@ export default function StudentDashboardPage() {
     )
   }
 
+  const getOtherStudentsSchedulesForDay = (date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd')
+    const allDaySchedules = allSchedules.filter((s: any) => format(new Date(s.date), 'yyyy-MM-dd') === dateStr)
+    return allDaySchedules.filter((s: any) => !s.isOwn)
+  }
+
+  const getTakenTimeBlockIds = (date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd')
+    const allDaySchedules = allSchedules.filter((s: any) => format(new Date(s.date), 'yyyy-MM-dd') === dateStr)
+    const pendingRequests = getPendingRequestsForDay(date)
+    const takenIds = new Set(allDaySchedules.map((s: any) => s.timeBlockId))
+    pendingRequests.forEach((r) => takenIds.add(r.timeBlockId))
+    return takenIds
+  }
+
+  const getAvailableTimeBlocksForDay = (date: Date) => {
+    const takenIds = getTakenTimeBlockIds(date)
+    return timeBlocks.filter(tb => !takenIds.has(tb.id))
+  }
+
   const handleRequestSlot = async (date: Date, timeBlockId: string, message: string) => {
     if (!timeBlockId) {
-      alert('Please select a time block')
       return
     }
 
     try {
-      // Format date at noon UTC to avoid timezone issues
       const dateStr = format(date, 'yyyy-MM-dd')
       const res = await fetch('/api/requests', {
         method: 'POST',
@@ -114,35 +142,47 @@ export default function StudentDashboardPage() {
         }),
       })
 
-      const data = await res.json()
-
       if (res.ok) {
-        alert('Request submitted successfully! Your instructor will review it.')
         setRequestingDate(null)
         setSelectedTimeBlock('')
         setRequestMessage('')
         fetchData()
-      } else {
-        alert(data.error || 'Failed to submit request')
       }
     } catch (error) {
       console.error('Error submitting request:', error)
-      alert('An error occurred')
     }
   }
 
   const handleCancelRequest = async (requestId: string) => {
-    if (!confirm('Cancel this request?')) return
-
     try {
       const res = await fetch(`/api/requests/${requestId}`, { method: 'DELETE' })
 
       if (res.ok) {
-        alert('Request cancelled')
         fetchData()
       }
     } catch (error) {
       console.error('Error cancelling request:', error)
+    }
+  }
+
+  const handleDeleteSchedule = async (scheduleId: string, timeBlockName: string, date: string) => {
+    const confirmed = window.confirm(
+      `Cancel this scheduled event?\n\n` +
+      `Time: ${timeBlockName}\n` +
+      `Date: ${date}\n\n` +
+      `This action cannot be undone.`
+    )
+
+    if (!confirmed) return
+
+    try {
+      const res = await fetch(`/api/schedule/${scheduleId}`, { method: 'DELETE' })
+
+      if (res.ok) {
+        fetchData()
+      }
+    } catch (error) {
+      console.error('Error deleting schedule:', error)
     }
   }
 
@@ -157,56 +197,47 @@ export default function StudentDashboardPage() {
   }
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">My Flight Schedule</h1>
-        <p className="text-gray-600 mt-2">View your scheduled flight times and request new slots</p>
-      </div>
-
-      {/* Pending Requests Alert */}
-      {pendingRequests.length > 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h3 className="font-semibold text-yellow-900">
-                {pendingRequests.length} Pending Request{pendingRequests.length !== 1 ? 's' : ''}
-              </h3>
-              <p className="text-sm text-yellow-800">
-                Waiting for instructor approval
-              </p>
-            </div>
-            <div className="space-x-2">
-              {pendingRequests.map((req) => (
-                <button
-                  key={req.id}
-                  onClick={() => handleCancelRequest(req.id)}
-                  className="text-sm text-red-600 hover:text-red-800"
-                >
-                  Cancel {format(new Date(req.date), 'MMM d')}
-                </button>
-              ))}
+    <div className="max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 style={{ fontSize: '1.875rem', fontWeight: '700', color: '#f3f4f6' }}>My Event Schedule</h1>
+            <p style={{ color: '#d1d5db', marginTop: '0.25rem', fontSize: '0.875rem' }}>View scheduled events and request new time slots</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div style={{ fontSize: '0.875rem', color: '#d1d5db' }}>
+              <span className="font-medium">{schedules.filter(s => new Date(s.date) >= new Date(new Date().setHours(0, 0, 0, 0))).length}</span> upcoming events
             </div>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Calendar */}
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <button onClick={handlePrevMonth} className="p-2 hover:bg-gray-100 rounded">
-            ← Previous
+      <div className="card p-6 mb-6">
+        {/* Month Navigation */}
+        <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 dark:border-gray-700" style={{ paddingLeft: '1rem', paddingRight: '1rem' }}>
+          <button
+            onClick={handlePrevMonth}
+            className="btn btn-secondary btn-sm hover:shadow"
+          >
+            ← Prev
           </button>
-          <h2 className="text-2xl font-bold">{format(currentMonth, 'MMMM yyyy')}</h2>
-          <button onClick={handleNextMonth} className="p-2 hover:bg-gray-100 rounded">
+          <h2 className="text-gray-900 dark:text-white">{format(currentMonth, 'MMMM yyyy')}</h2>
+          <button
+            onClick={handleNextMonth}
+            className="btn btn-secondary btn-sm hover:shadow"
+          >
             Next →
           </button>
         </div>
 
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-7 gap-3">
           {/* Day headers */}
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-            <div key={day} className="text-center font-semibold text-gray-600 py-2">
-              {day}
+            <div key={day} className="text-center font-bold text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 pb-2">
+              <span className="day-header-full">{day}</span>
+              <span className="day-header-short">{day.charAt(0)}</span>
             </div>
           ))}
 
@@ -219,7 +250,9 @@ export default function StudentDashboardPage() {
           {days.map((date) => {
             const mySchedules = getMySchedulesForDay(date)
             const allDaySchedules = getAllSchedulesForDay(date)
+            const otherSchedules = getOtherStudentsSchedulesForDay(date)
             const pendingRequests = getPendingRequestsForDay(date)
+            const takenTimeBlockIds = getTakenTimeBlockIds(date)
             const isBlocked = isDayBlocked(date)
             const isToday = format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')
             const isPast = date < new Date(new Date().setHours(0, 0, 0, 0))
@@ -228,91 +261,248 @@ export default function StudentDashboardPage() {
               <div
                 key={date.toISOString()}
                 className={`
-                  border rounded-lg p-2 h-[140px] overflow-y-auto
-                  ${isToday ? 'border-blue-500 border-2' : 'border-gray-200'}
-                  ${isBlocked ? 'bg-gray-100' : 'bg-white'}
+                  calendar-day
+                  ${isToday ? 'calendar-day-today' : ''}
+                  ${isBlocked ? 'calendar-day-blocked' : 'calendar-day-normal'}
                   ${isPast ? 'opacity-50' : ''}
                 `}
+                style={{ position: 'relative' }}
               >
-                <div className="flex justify-between items-start mb-1">
-                  <span className="text-sm font-semibold">{format(date, 'd')}</span>
-                  {!isBlocked && !isPast && requestingDate?.getTime() !== date.getTime() && (
-                    <button
-                      onClick={() => {
-                        setRequestingDate(date)
-                        setSelectedTimeBlock('')
-                        setRequestMessage('')
-                      }}
-                      className="text-xs text-blue-600 hover:text-blue-800"
-                    >
-                      Request
-                    </button>
-                  )}
-                </div>
-
-                <div className="space-y-1">
-                  {isBlocked ? (
-                    <div className="text-xs text-gray-600">Unavailable</div>
-                  ) : requestingDate?.getTime() === date.getTime() ? (
-                    <div className="bg-blue-50 p-2 rounded space-y-2">
-                      <select
-                        value={selectedTimeBlock}
-                        onChange={(e) => setSelectedTimeBlock(e.target.value)}
-                        className="w-full text-xs border border-gray-300 rounded px-1 py-1"
-                      >
-                        <option value="">Select time...</option>
-                        {timeBlocks.map((tb) => (
-                          <option key={tb.id} value={tb.id}>
-                            {tb.name} ({tb.startTime}-{tb.endTime})
-                          </option>
-                        ))}
-                      </select>
-                      <input
-                        type="text"
-                        value={requestMessage}
-                        onChange={(e) => setRequestMessage(e.target.value)}
-                        placeholder="Optional message..."
-                        className="w-full text-xs border border-gray-300 rounded px-1 py-1"
-                      />
-                      <div className="flex gap-1">
-                        <button
-                          onClick={() => handleRequestSlot(date, selectedTimeBlock, requestMessage)}
-                          className="flex-1 text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700"
-                        >
-                          Submit
-                        </button>
-                        <button
-                          onClick={() => setRequestingDate(null)}
-                          className="flex-1 text-xs bg-gray-300 text-gray-700 px-2 py-1 rounded hover:bg-gray-400"
-                        >
-                          Cancel
-                        </button>
-                      </div>
+                {requestingDate?.getTime() !== date.getTime() && (
+                  <div className="mb-2">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-sm font-bold text-gray-900 dark:text-white">{format(date, 'd')}</span>
                     </div>
-                  ) : (
+                    {!isBlocked && !isPast && (
+                      <button
+                        onClick={() => {
+                          setRequestingDate(date)
+                          setSelectedTimeBlock('')
+                          setRequestMessage('')
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#3b82f6'
+                          e.currentTarget.style.color = '#ffffff'
+                          e.currentTarget.style.transform = 'scale(1.02)'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent'
+                          e.currentTarget.style.color = '#3b82f6'
+                          e.currentTarget.style.transform = 'scale(1)'
+                        }}
+                        onMouseDown={(e) => {
+                          e.currentTarget.style.transform = 'scale(0.98)'
+                        }}
+                        onMouseUp={(e) => {
+                          e.currentTarget.style.transform = 'scale(1.02)'
+                        }}
+                        style={{
+                          fontSize: '0.7rem',
+                          fontWeight: '500',
+                          color: '#3b82f6',
+                          padding: '0.25rem 0.375rem',
+                          whiteSpace: 'nowrap',
+                          border: '1px solid #3b82f6',
+                          borderRadius: '0.25rem',
+                          backgroundColor: 'transparent',
+                          cursor: 'pointer',
+                          width: '100%',
+                          textAlign: 'center',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        + Request
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                <div className="space-y-1.5">
+                  {requestingDate?.getTime() === date.getTime() && (
+                    <>
+                      {/* Backdrop */}
+                      <div
+                        onClick={() => setRequestingDate(null)}
+                        style={{
+                          position: 'fixed',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                          zIndex: 40
+                        }}
+                      />
+                      {/* Modal */}
+                      <div style={{
+                        position: 'fixed',
+                        backgroundColor: '#1e293b',
+                        padding: '0.75rem',
+                        borderRadius: '0.5rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.5rem',
+                        border: '2px solid #3b82f6',
+                        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5)',
+                        zIndex: 50,
+                        minWidth: '250px',
+                        left: '50%',
+                        top: '50%',
+                        transform: 'translate(-50%, -50%)'
+                      }}>
+                        <div style={{ fontSize: '0.875rem', fontWeight: 'bold', textAlign: 'center', color: '#ffffff' }}>
+                          Request Time - {format(date, 'MMM d')}
+                        </div>
+                        {getAvailableTimeBlocksForDay(date).length === 0 ? (
+                          <div style={{ fontSize: '0.875rem', color: '#9ca3af', padding: '1rem', textAlign: 'center' }}>
+                            No available time slots for this day
+                          </div>
+                        ) : (
+                          <>
+                            <select
+                              value={selectedTimeBlock}
+                              onChange={(e) => setSelectedTimeBlock(e.target.value)}
+                              style={{
+                                width: '100%',
+                                fontSize: '0.875rem',
+                                padding: '0.5rem',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '0.375rem',
+                                backgroundColor: '#374151',
+                                color: '#ffffff',
+                                boxSizing: 'border-box'
+                              }}
+                            >
+                              <option value="">Select Time...</option>
+                              {getAvailableTimeBlocksForDay(date).map((tb) => (
+                                <option key={tb.id} value={tb.id}>
+                                  {tb.name}
+                                </option>
+                              ))}
+                            </select>
+                            <input
+                              type="text"
+                              value={requestMessage}
+                              onChange={(e) => setRequestMessage(e.target.value)}
+                              placeholder="Optional message..."
+                              style={{
+                                width: '100%',
+                                fontSize: '0.875rem',
+                                padding: '0.5rem',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '0.375rem',
+                                backgroundColor: '#374151',
+                                color: '#ffffff',
+                                boxSizing: 'border-box'
+                              }}
+                            />
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                              <button
+                                onClick={() => handleRequestSlot(date, selectedTimeBlock, requestMessage)}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.backgroundColor = '#2563eb'
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.backgroundColor = '#3b82f6'
+                                }}
+                                style={{
+                                  flex: 1,
+                                  fontSize: '0.875rem',
+                                  fontWeight: '600',
+                                  color: '#ffffff',
+                                  backgroundColor: '#3b82f6',
+                                  padding: '0.5rem',
+                                  border: 'none',
+                                  borderRadius: '0.375rem',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                Request
+                              </button>
+                              <button
+                                onClick={() => setRequestingDate(null)}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.backgroundColor = '#4b5563'
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.backgroundColor = '#6b7280'
+                                }}
+                                style={{
+                                  flex: 1,
+                                  fontSize: '0.875rem',
+                                  fontWeight: '600',
+                                  color: '#ffffff',
+                                  backgroundColor: '#6b7280',
+                                  padding: '0.5rem',
+                                  border: 'none',
+                                  borderRadius: '0.375rem',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </>
+                  )}
+                  {isBlocked ? (
+                    <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">🔒 Unavailable</div>
+                  ) : requestingDate?.getTime() !== date.getTime() && (
                     <>
                       {mySchedules.map((schedule) => (
                         <div
                           key={schedule.id}
-                          className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded"
+                          className={`${
+                            schedule.createdByInstructor
+                              ? 'schedule-confirmed-locked'
+                              : 'schedule-confirmed cursor-pointer hover:shadow-sm transition-all group'
+                          } text-xs px-2 py-1.5 rounded-md`}
+                          onClick={() => {
+                            if (!schedule.createdByInstructor) {
+                              handleDeleteSchedule(
+                                schedule.id,
+                                schedule.timeBlock.name,
+                                format(date, 'MMMM d, yyyy')
+                              )
+                            }
+                          }}
+                          title={!schedule.createdByInstructor ? 'Click to remove' : 'Scheduled by instructor'}
                         >
-                          <div className="font-medium">✓ {schedule.timeBlock.name}</div>
+                          <div className="font-semibold flex items-center justify-between">
+                            <span>✓ {schedule.timeBlock.name}</span>
+                            {!schedule.createdByInstructor && (
+                              <span className="opacity-0 group-hover:opacity-100 transition-opacity text-red-600">×</span>
+                            )}
+                          </div>
                         </div>
                       ))}
                       {pendingRequests.map((req) => (
                         <div
                           key={req.id}
-                          className="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded"
+                          className="schedule-pending text-xs px-2 py-1.5 rounded-md cursor-pointer hover:shadow-sm transition-all group"
+                          onClick={() => handleCancelRequest(req.id)}
+                          title="Click to cancel request"
                         >
-                          <div className="font-medium">⏳ {req.timeBlock.name}</div>
-                          <div className="text-[10px]">Pending</div>
+                          <div className="font-semibold flex items-center justify-between">
+                            <span>{req.timeBlock.name}</span>
+                            <span className="opacity-0 group-hover:opacity-100 transition-opacity text-red-600">×</span>
+                          </div>
+                          <div className="text-[10px] opacity-75">⏳ Pending</div>
                         </div>
                       ))}
-                      {allDaySchedules.length > mySchedules.length && (
-                        <div className="text-xs text-gray-500">
-                          {allDaySchedules.length - mySchedules.length} slot(s) unavailable
+                      {otherSchedules.map((schedule: any) => (
+                        <div
+                          key={schedule.id}
+                          className="schedule-reserved text-xs px-2 py-1.5 rounded-md"
+                          title="This time slot is already reserved by another student"
+                        >
+                          <div className="font-semibold">
+                            {schedule.timeBlock.name}
+                          </div>
                         </div>
-                      )}
+                      ))}
                     </>
                   )}
                 </div>
@@ -323,31 +513,56 @@ export default function StudentDashboardPage() {
       </div>
 
       {/* My Schedules List */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
-          My Upcoming Flights ({schedules.length})
-        </h2>
+      <div className="card" style={{ padding: '2rem', marginTop: '2rem' }}>
+        <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-200 dark:border-gray-700" style={{ marginLeft: '-2rem', marginRight: '-2rem', paddingLeft: '2rem', paddingRight: '2rem' }}>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">My Upcoming Events</h3>
+          <span className="badge badge-info">{schedules.filter(s => new Date(s.date) >= new Date(new Date().setHours(0, 0, 0, 0))).length} events</span>
+        </div>
 
-        {schedules.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">
-            No scheduled flights. Request a time slot to get started!
-          </p>
+        {schedules.filter(s => new Date(s.date) >= new Date(new Date().setHours(0, 0, 0, 0))).length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-500 dark:text-gray-400">
+              No upcoming scheduled events. Click "+ Request" on any day to get started!
+            </p>
+          </div>
         ) : (
-          <div className="space-y-2">
-            {schedules.map((schedule) => (
+          <div className="space-y-3">
+            {schedules.filter(s => new Date(s.date) >= new Date(new Date().setHours(0, 0, 0, 0))).map((schedule) => (
               <div
                 key={schedule.id}
-                className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
+                className="flex items-center justify-between p-4 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 rounded-lg border border-emerald-100 dark:border-emerald-800 hover:shadow-md transition-shadow"
               >
-                <div>
-                  <div className="font-medium text-gray-900">
-                    {format(new Date(schedule.date), 'EEEE, MMMM d, yyyy')}
+                <div className="flex items-center gap-4">
+                  <div className="bg-emerald-100 dark:bg-emerald-900/40 p-3 rounded-lg">
+                    <svg className="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
                   </div>
-                  <div className="text-sm text-gray-600">
-                    {schedule.timeBlock.name} ({schedule.timeBlock.startTime} -{' '}
-                    {schedule.timeBlock.endTime})
+                  <div>
+                    <div className="font-semibold text-gray-900 dark:text-white">
+                      {format(new Date(schedule.date), 'EEEE, MMMM d, yyyy')}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">
+                      {schedule.timeBlock.name} • {schedule.timeBlock.startTime} -{' '}
+                      {schedule.timeBlock.endTime}
+                      {!schedule.createdByInstructor && (
+                        <span className="text-xs ml-2 text-blue-600 dark:text-blue-400">(You can remove this from calendar)</span>
+                      )}
+                    </div>
                   </div>
                 </div>
+                {!schedule.createdByInstructor && (
+                  <button
+                    onClick={() => handleDeleteSchedule(
+                      schedule.id,
+                      schedule.timeBlock.name,
+                      format(new Date(schedule.date), 'MMMM d, yyyy')
+                    )}
+                    className="btn btn-accent btn-sm"
+                  >
+                    Remove
+                  </button>
+                )}
               </div>
             ))}
           </div>
