@@ -47,7 +47,7 @@ export async function sendStudentWelcomeSMS(
   phone: string,
   pin: string
 ): Promise<boolean> {
-  const message = `Hi ${studentName}! Welcome to FlightSlot. Your instructor has added you to their event scheduling system.\n\nYour PIN: ${pin}\n\nVisit bprime.net and enter your PIN to view your schedule.`
+  const message = `Hi ${studentName}! Welcome to FlightSlot. Your instructor has added you to their event scheduling system.\n\nYour PIN: ${pin}\n\nVisit flightslot.bprime.net and enter your PIN to view your schedule.`
 
   return sendSMS({
     to: phone,
@@ -64,7 +64,7 @@ export async function sendRequestNotificationSMS(
   date: string,
   timeBlock: string
 ): Promise<boolean> {
-  const message = `FlightSlot: New schedule request from ${studentName}\n\nDate: ${date}\nTime: ${timeBlock}\n\nReply APPROVE to confirm or visit bprime.net/instructor/requests to manage.`
+  const message = `FlightSlot: New schedule request from ${studentName}\n\nDate: ${date}\nTime: ${timeBlock}\n\nReply APPROVE to confirm or visit flightslot.bprime.net/instructor/requests to manage.`
 
   return sendSMS({
     to: instructorPhone,
@@ -81,7 +81,7 @@ export async function sendRequestApprovedSMS(
   date: string,
   timeBlock: string
 ): Promise<boolean> {
-  const message = `Hi ${studentName}! Your schedule request has been approved.\n\nDate: ${date}\nTime: ${timeBlock}\n\nView your full schedule at bprime.net`
+  const message = `Hi ${studentName}! Your schedule request has been approved.\n\nDate: ${date}\nTime: ${timeBlock}\n\nView your full schedule at flightslot.bprime.net`
 
   return sendSMS({
     to: studentPhone,
@@ -97,7 +97,7 @@ export async function sendPinResetSMS(
   phone: string,
   newPin: string
 ): Promise<boolean> {
-  const message = `Hi ${studentName}! Your FlightSlot PIN has been reset.\n\nNew PIN: ${newPin}\n\nVisit bprime.net to access your schedule.`
+  const message = `Hi ${studentName}! Your FlightSlot PIN has been reset.\n\nNew PIN: ${newPin}\n\nVisit flightslot.bprime.net to access your schedule.`
 
   return sendSMS({
     to: phone,
