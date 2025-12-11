@@ -84,7 +84,7 @@ export async function sendStudentWelcomeEmail(
             <div class="pin">${pin}</div>
             <p><strong>How to access your schedule:</strong></p>
             <ol>
-              <li>Visit <a href="https://bprime.net">bprime.net</a></li>
+              <li>Visit <a href="https://flightslot.bprime.net">flightslot.bprime.net</a></li>
               <li>Enter your PIN when prompted</li>
               <li>View your assigned event times</li>
               <li>Request additional time slots if needed</li>
@@ -141,7 +141,7 @@ export async function sendRequestNotificationEmail(
               <p><strong>Time:</strong> ${timeBlock}</p>
             </div>
             <p>Please review and approve or deny this request in your FlightSlot dashboard.</p>
-            <a href="https://bprime.net/instructor/requests" class="button">View Requests</a>
+            <a href="https://flightslot.bprime.net/instructor/requests" class="button">View Requests</a>
           </div>
         </div>
       </body>
