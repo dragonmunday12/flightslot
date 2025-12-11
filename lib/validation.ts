@@ -31,17 +31,24 @@ export function sanitizeEmail(email: string): string | null {
 
 /**
  * Validate and sanitize phone number
+ * Returns phone in E.164 format (e.g., +15551234567)
  */
 export function sanitizePhone(phone: string): string | null {
   if (!phone || typeof phone !== 'string') return null
 
-  // Remove all non-numeric characters
-  const digitsOnly = phone.replace(/\D/g, '')
+  const trimmed = phone.trim()
+
+  // Check if it starts with +
+  const hasPlus = trimmed.startsWith('+')
+
+  // Remove all non-numeric characters except the leading +
+  const digitsOnly = trimmed.replace(/[^\d+]/g, '').replace(/\+/g, '')
 
   // Check if it's a valid length (10-15 digits for international numbers)
   if (digitsOnly.length < 10 || digitsOnly.length > 15) return null
 
-  return digitsOnly
+  // Return in E.164 format with +
+  return `+${digitsOnly}`
 }
 
 /**
