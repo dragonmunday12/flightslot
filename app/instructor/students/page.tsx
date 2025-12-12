@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { PhoneInput } from '@/components/ui/PhoneInput'
 import { Modal } from '@/components/ui/Modal'
 import { Student, TimeBlock } from '@/types'
 
@@ -354,12 +355,11 @@ export default function StudentsPage() {
             onChange={setEmail}
             placeholder="student@example.com"
           />
-          <Input
+          <PhoneInput
             label="Phone (optional)"
-            type="tel"
             value={phone}
             onChange={setPhone}
-            placeholder="+1234567890"
+            placeholder="5551234567"
           />
           {error && <div className="text-red-500 text-sm">{error}</div>}
           <div className="flex gap-2">
