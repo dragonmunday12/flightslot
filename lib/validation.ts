@@ -87,6 +87,23 @@ export function isValidUUID(id: string): boolean {
 }
 
 /**
+ * Validate CUID (used by Prisma @default(cuid()))
+ */
+export function isValidCUID(id: string): boolean {
+  if (!id || typeof id !== 'string') return false
+  // CUID format: starts with 'c', followed by alphanumeric characters, typically 25 chars total
+  const cuidRegex = /^c[a-z0-9]{24,}$/i
+  return cuidRegex.test(id)
+}
+
+/**
+ * Validate ID (accepts both UUID and CUID formats)
+ */
+export function isValidId(id: string): boolean {
+  return isValidUUID(id) || isValidCUID(id)
+}
+
+/**
  * Validate date string (YYYY-MM-DD format)
  */
 export function isValidDateString(dateStr: string): boolean {

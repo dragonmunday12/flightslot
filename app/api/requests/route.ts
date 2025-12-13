@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db'
 import { sendRequestNotificationEmail } from '@/lib/notifications/email'
 import { sendRequestNotificationSMS } from '@/lib/notifications/sms'
 import { formatDateForDisplay } from '@/lib/utils'
-import { isValidDateString, isValidUUID, validateMessage } from '@/lib/validation'
+import { isValidDateString, isValidId, validateMessage } from '@/lib/validation'
 
 // GET all requests (filtered by role)
 export async function GET(request: NextRequest) {
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate timeBlockId
-    if (!timeBlockId || !isValidUUID(timeBlockId)) {
+    if (!timeBlockId || !isValidId(timeBlockId)) {
       return NextResponse.json(
         { error: 'Invalid time block ID' },
         { status: 400 }
