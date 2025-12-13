@@ -243,7 +243,7 @@ export default function SettingsPage() {
   }
 
   if (loading) {
-    return <div className="text-center py-8">Loading...</div>
+    return <div className="text-center py-8 text-gray-900 dark:text-white">Loading...</div>
   }
 
   return (

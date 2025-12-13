@@ -206,7 +206,7 @@ export default function StudentsPage() {
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
   if (loading) {
-    return <div style={{ textAlign: 'center', padding: '2rem', color: '#d1d5db' }}>Loading...</div>
+    return <div className="text-center py-8 text-gray-900 dark:text-white">Loading...</div>
   }
 
   return (
