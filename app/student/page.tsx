@@ -127,6 +127,7 @@ export default function StudentDashboardPage() {
 
   const handleRequestSlot = async (date: Date, timeBlockId: string, message: string) => {
     if (!timeBlockId) {
+      alert('Please select a time slot')
       return
     }
 
@@ -143,13 +144,18 @@ export default function StudentDashboardPage() {
       })
 
       if (res.ok) {
+        alert('Request submitted successfully! Your instructor will review it soon.')
         setRequestingDate(null)
         setSelectedTimeBlock('')
         setRequestMessage('')
         fetchData()
+      } else {
+        const errorData = await res.json()
+        alert(errorData.error || 'Failed to submit request. Please try again.')
       }
     } catch (error) {
       console.error('Error submitting request:', error)
+      alert('An error occurred while submitting your request. Please try again.')
     }
   }
 
