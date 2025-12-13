@@ -461,7 +461,7 @@ export default function InstructorCalendarPage() {
                         <option value="">Select Time...</option>
                         {getAvailableTimeBlocksForDay(date).map((tb) => (
                           <option key={tb.id} value={tb.id}>
-                            {tb.name}
+                            {tb.name} ({tb.startTime} - {tb.endTime})
                           </option>
                         ))}
                       </select>
