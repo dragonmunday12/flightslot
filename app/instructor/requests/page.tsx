@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { formatDateForDisplay } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
+import { Loading } from '@/components/ui/Loading'
 import { RequestWithRelations } from '@/types'
 
 export default function RequestsPage() {
@@ -61,7 +62,7 @@ export default function RequestsPage() {
   const processedRequests = requests.filter((r) => r.status !== 'pending')
 
   if (loading) {
-    return <div className="text-center py-8 text-gray-900 dark:text-white">Loading...</div>
+    return <Loading />
   }
 
   return (

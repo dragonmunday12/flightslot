@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { PhoneInput } from '@/components/ui/PhoneInput'
 import { Modal } from '@/components/ui/Modal'
+import { Loading } from '@/components/ui/Loading'
 import { Student, TimeBlock } from '@/types'
 
 export default function StudentsPage() {
@@ -206,7 +207,7 @@ export default function StudentsPage() {
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
   if (loading) {
-    return <div className="text-center py-8 text-gray-900 dark:text-white">Loading...</div>
+    return <Loading />
   }
 
   return (

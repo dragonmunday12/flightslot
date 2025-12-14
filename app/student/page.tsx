@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 import { ScheduleWithRelations, TimeBlock, RequestWithRelations, BlockedDay } from '@/types'
+import { Loading } from '@/components/ui/Loading'
 
 export default function StudentDashboardPage() {
   const [schedules, setSchedules] = useState<ScheduleWithRelations[]>([])
@@ -199,7 +200,7 @@ export default function StudentDashboardPage() {
   const pendingRequests = requests.filter((r) => r.status === 'pending')
 
   if (loading) {
-    return <div className="text-center py-8 text-gray-900 dark:text-white">Loading...</div>
+    return <Loading />
   }
 
   return (

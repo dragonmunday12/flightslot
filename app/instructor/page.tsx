@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 import { Button } from '@/components/ui/Button'
+import { Loading } from '@/components/ui/Loading'
 import { ScheduleWithRelations, Student, TimeBlock, BlockedDay, RequestWithRelations } from '@/types'
 
 export default function InstructorCalendarPage() {
@@ -220,7 +221,7 @@ export default function InstructorCalendarPage() {
   const emptyCells = Array(startDayOfWeek).fill(null)
 
   if (loading) {
-    return <div className="text-center py-8 text-gray-900 dark:text-white">Loading...</div>
+    return <Loading />
   }
 
   return (
