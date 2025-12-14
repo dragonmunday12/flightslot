@@ -67,15 +67,17 @@ export default function RequestsPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-white">Schedule Requests</h1>
-        <p className="text-gray-300 mt-2">
+        <h1 style={{ fontSize: '1.875rem', fontWeight: '700', color: '#ffffff', marginBottom: '0.5rem' }}>
+          Schedule Requests
+        </h1>
+        <p style={{ color: '#d1d5db', fontSize: '0.875rem' }}>
           Review and approve student requests for time slots
         </p>
       </div>
 
       {/* Pending Requests */}
       <div className="mb-8">
-        <h2 className="text-xl font-semibold text-white mb-4">
+        <h2 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#ffffff', marginBottom: '1rem' }}>
           Pending Requests ({pendingRequests.length})
         </h2>
 
@@ -149,7 +151,7 @@ export default function RequestsPage() {
       {/* Processed Requests */}
       {processedRequests.length > 0 && (
         <div>
-          <h2 className="text-xl font-semibold text-white mb-4">
+          <h2 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#ffffff', marginBottom: '1rem' }}>
             Processed Requests ({processedRequests.length})
           </h2>
 
